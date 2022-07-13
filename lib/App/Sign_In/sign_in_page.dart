@@ -1,26 +1,38 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:time_tracker_flutter_project/App/Sign_In/email_sign_in_page.dart';
 import 'package:time_tracker_flutter_project/App/Sign_In/sign_in_button.dart';
 import 'package:time_tracker_flutter_project/App/Sign_In/social_sign_in_button.dart';
 import 'package:time_tracker_flutter_project/App/services/auth.dart';
+import 'package:time_tracker_flutter_project/common_widgets/show_exception_alert_dialog.dart';
 
 class SignInPage extends StatelessWidget {
-  const SignInPage({super.key, required this.auth});
-  final AuthBase auth;
+  const SignInPage({super.key});
+  void _showSignInError(BuildContext context, Exception exception) {
+    if (exception is FirebaseException &&
+        exception.code == 'ERROR_ABORTED_BY_USER') {
+      return;
+    }
+    showExceptionAlertDialog(context,
+        title: 'Sign In Failed', exception: exception);
+  }
 
-  Future<void> _signInAnonymously() async {
+  Future<void> _signInAnonymously(BuildContext context) async {
     try {
+      final auth = Provider.of<AuthBase>(context, listen: false);
       await auth.signInAnonymously();
-    } catch (e) {
-      debugPrint(e.toString());
+    } on Exception catch (e) {
+      _showSignInError(context, e);
     }
   }
 
-  Future<void> _signInWithGoogle() async {
+  Future<void> _signInWithGoogle(BuildContext context) async {
     try {
+      final auth = Provider.of<AuthBase>(context, listen: false);
       await auth.signInWithGoogle();
-    } catch (e) {
-      debugPrint(e.toString());
+    } on Exception catch (e) {
+      _showSignInError(context, e);
     }
   }
 
@@ -28,7 +40,7 @@ class SignInPage extends StatelessWidget {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         fullscreenDialog: true,
-        builder: (context) => EmailSignInPage(auth: auth),
+        builder: (context) => const EmailSignInPage(),
       ),
     );
   }
@@ -67,7 +79,7 @@ class SignInPage extends StatelessWidget {
             text: 'Sign in with Google',
             textColor: Colors.black,
             color: Colors.white,
-            onPressed: _signInWithGoogle,
+            onPressed: () => _signInWithGoogle(context),
           ),
           const SizedBox(height: 9.0),
           SignInButton(
@@ -87,7 +99,7 @@ class SignInPage extends StatelessWidget {
           const SizedBox(height: 9.0),
           SignInButton(
             text: 'Continue as Guest',
-            onPressed: _signInAnonymously,
+            onPressed: () => _signInAnonymously(context),
             color: Colors.blue,
             textColor: Colors.white,
           ),
