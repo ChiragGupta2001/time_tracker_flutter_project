@@ -1,23 +1,22 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:time_tracker_flutter_project/App/Sign_In/email_sign_in_model.dart';
 import 'package:time_tracker_flutter_project/App/Sign_In/validators.dart';
 import 'package:time_tracker_flutter_project/App/services/auth.dart';
 import 'package:time_tracker_flutter_project/common_widgets/form_submit_button.dart';
-import 'package:time_tracker_flutter_project/common_widgets/show_alert_dialogues.dart';
 
 import '../../common_widgets/show_exception_alert_dialog.dart';
 
-enum EmailSignInFormType { signIn, register }
 
-class EmailSignInForm extends StatefulWidget with EmailAndPasswordValidators {
-  EmailSignInForm({super.key});
+class EmailSignInFormStateful extends StatefulWidget with EmailAndPasswordValidators {
+  EmailSignInFormStateful({super.key});
 
   @override
-  _EmailSignInFormState createState() => _EmailSignInFormState();
+  _EmailSignInFormStatefulState createState() => _EmailSignInFormStatefulState();
 }
 
-class _EmailSignInFormState extends State<EmailSignInForm> {
+class _EmailSignInFormStatefulState extends State<EmailSignInFormStateful> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final FocusNode _emailFocusNode = FocusNode();
@@ -25,28 +24,38 @@ class _EmailSignInFormState extends State<EmailSignInForm> {
 
   String get _email => _emailController.text;
   String get _password => _passwordController.text;
-  EmailSignInFormType _formType = EmailSignInFormType.signIn;
+  EmailSignInFormStatefulType _formType = EmailSignInFormStatefulType.signIn;
   bool _submitted = false;
   bool _isLoading = false;
 
-  void _submit() async {
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    _emailFocusNode.dispose();
+    _passwordFocusNode.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
     setState(() {
       _submitted = true;
       _isLoading = true;
     });
     try {
       final auth = Provider.of<AuthBase>(context, listen: false);
-      if (_formType == EmailSignInFormType.signIn) {
+      if (_formType == EmailSignInFormStatefulType.signIn) {
         await auth.signInWithEmailAndPassword(_email, _password);
       } else {
         await auth.createUserWithEmailAndPassword(_email, _password);
       }
       Navigator.of(context).pop();
     } on FirebaseAuthException catch (e) {
-      showExceptionAlertDialog(context,
-          title: 'Sign in Failed',
-          exception: e,
-    );
+      showExceptionAlertDialog(
+        context,
+        title: 'Sign in Failed',
+        exception: e,
+      );
     } finally {
       setState(() {
         _isLoading = false;
@@ -64,19 +73,19 @@ class _EmailSignInFormState extends State<EmailSignInForm> {
   void _toggleFormType() {
     setState(() {
       _submitted = false;
-      _formType = _formType == EmailSignInFormType.signIn
-          ? EmailSignInFormType.register
-          : EmailSignInFormType.signIn;
+      _formType = _formType == EmailSignInFormStatefulType.signIn
+          ? EmailSignInFormStatefulType.register
+          : EmailSignInFormStatefulType.signIn;
     });
     _emailController.clear();
     _passwordController.clear();
   }
 
   List<Widget> _buildChildren() {
-    final primaryText = _formType == EmailSignInFormType.signIn
+    final primaryText = _formType == EmailSignInFormStatefulType.signIn
         ? 'Sign In'
         : 'Create an account';
-    final secondaryText = _formType == EmailSignInFormType.signIn
+    final secondaryText = _formType == EmailSignInFormStatefulType.signIn
         ? 'Need an account? Register'
         : 'Have an account? Sign In';
 
