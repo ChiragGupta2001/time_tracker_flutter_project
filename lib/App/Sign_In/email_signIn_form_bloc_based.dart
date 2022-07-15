@@ -9,7 +9,7 @@ import 'package:time_tracker_flutter_project/common_widgets/form_submit_button.d
 import '../../common_widgets/show_exception_alert_dialog.dart';
 
 class EmailSignInFormBlocBased extends StatefulWidget {
-  EmailSignInFormBlocBased({super.key, required this.bloc});
+  const EmailSignInFormBlocBased({super.key, required this.bloc});
   final EmailSignInBloc bloc;
 
   static Widget create(BuildContext context) {
